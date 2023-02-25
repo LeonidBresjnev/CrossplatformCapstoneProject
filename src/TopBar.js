@@ -1,13 +1,14 @@
 
-import {StyleSheet, View , Image } from 'react-native';
+import {StyleSheet, View , Image, Text, Pressable } from 'react-native';
 
 import {useContext} from 'react';
 import { AppContext } from './user';
-const TopBar = () => {
+const TopBar = ({navigation}) => {
   
-  const { avatarimg } = useContext(AppContext);
+  const { avatarimg, username, lastname, loggedin } = useContext(AppContext);
   return (
     <View style={styles.headerWrapper}>
+      
     <Image
       style={[styles.image, {flex:0.8}]}
       source={require('./img/yellowlogoandtext.png')}
@@ -15,7 +16,8 @@ const TopBar = () => {
       accessible={true}
       accessibilityLabel={'Little Lemon Logo'}
     />
-    {avatarimg &&
+    <Pressable onPress={() => navigation.navigate('Profile')}>
+    {avatarimg && loggedin &&
     <Image
     style={[styles.image, {flex:0.2}]}
       source={{ uri: avatarimg }}
@@ -24,6 +26,11 @@ const TopBar = () => {
       accessibilityLabel={'Little Lemon Logo'}
     />
 }
+    {avatarimg === null && loggedin &&
+    <Text style={{backgroundColor: '#F4CE14' , color:  "#000000", fontSize: 20, textAlign: 'center', textAlignVertical: 'center', width:40,height:40, borderRadius: 45}}> {username?`${username[0]}${lastname?lastname[0]:""}`:""} </Text>}
+    </Pressable>
+    
+
         </View>
   );
   }

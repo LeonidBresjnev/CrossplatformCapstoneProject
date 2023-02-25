@@ -4,10 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Onboarding from './src/Onboarding';
 import Home from './src/Home';
-import Splash from './src/Splash';
 import Profile from './src/Profile';
 
-import TopBar from './src/TopBar';
+import Splash from './src/Splash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useState, useEffect } from 'react';
@@ -51,12 +50,14 @@ export default function App() {
 
   return (
 <AppProvider>
-    <View style={styles.container}>
-      <TopBar/>     
+    <View style={styles.container}>    
       <NavigationContainer>
-<Stack.Navigator initialRouteName={isloggedin?"Profile":"Onboarding"}>
-  <Stack.Screen name="Onboarding" component={Onboarding}  />
+<Stack.Navigator initialRouteName={isloggedin?'Home':'Onboarding'}>
+  <Stack.Screen name="Home" component={Home}  />
   <Stack.Screen name="Profile" component={Profile} />
+  <Stack.Screen name="Onboarding" component={Onboarding} />
+
+
 </Stack.Navigator>
 </NavigationContainer>
     </View>

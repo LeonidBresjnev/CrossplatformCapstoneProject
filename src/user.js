@@ -3,7 +3,9 @@ import React, { createContext, useReducer } from 'react';
 
 // 1. Sets the initial state when the app loads
 const initialState = {
+    loggedin: false,
     username: "",
+    lastname: "",
     email: "",
     avatarimg: null,
 };
@@ -20,7 +22,9 @@ export const AppProvider = (props) => {
     return (
         <AppContext.Provider
             value={{
+                loggedin: state.loggedin,
                 username: state.username,
+                lastname: state.lastname,
                 email: state.email,
                 avatarimg: state.avatarimg,
                 dispatch,
@@ -35,9 +39,15 @@ export const AppProvider = (props) => {
 // 5. The reducer - this is used to update the state, based on the action
 export const AppReducer = (state, action) => {
     switch (action.type) {
-        case 'SET_USERNAME': 
-            state.username = action.payload.name;
+        case 'SET_LOGGEDIN':
+            state.loggedin = action.payload.loggedin;
             return {...state};
+        case 'SET_USERNAME': 
+                state.username = action.payload.name;
+                return {...state};
+        case 'SET_LASTNAME': 
+                    state.lastname = action.payload.lastname;
+                    return {...state};
         case 'SET_EMAIL':
             state.email = action.payload.email;
             return {...state};

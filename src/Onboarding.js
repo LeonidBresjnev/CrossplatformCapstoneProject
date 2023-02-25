@@ -1,11 +1,12 @@
 import {Pressable,  StyleSheet, Text, View, TextInput } from 'react-native';
 
-import AppLoading from 'expo-app-loading';
-import { useState,useContext } from 'react';
+import { useState,useContext,useEffect } from 'react';
 
 import useFonts from './usefonts';
 
 import { AppContext } from './user';
+import TopBar from './TopBar';
+import Splash from './Splash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
   
   const Button = ({onPress, children, disabled}) => {
@@ -22,7 +23,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const Onboarding = ({navigation}) => {
-    const { dispatch, username,email } = useContext(AppContext);
+    const { dispatch, username,email,loggedin } = useContext(AppContext);
     
     const [IsReady, SetIsReady] = useState(false);
     
@@ -30,9 +31,24 @@ const Onboarding = ({navigation}) => {
     const [localusername, onChangeLocalUserName] = useState('');
     const [localemail, onChangeLocalEmail] = useState('');
 
-    const LoadFonts = async () => {
-      await useFonts();
-    };
+    
+    useEffect(() => {
+        // Populating preferences from storage using AsyncStorage.multiGet
+        (async () => {
+      try {
+        await useFonts();
+      } catch (e) {
+        alert(`An error occurred: ${e.message}`);
+      } finally {
+        SetIsReady(true)
+        dispatch({
+            type: 'SET_LOGGEDIN',
+            payload: {loggedin: false}
+          });
+        }
+
+    } ) ();
+},[]);
   
     const saveUser = async (username, email) => {
         try {
@@ -44,16 +60,14 @@ const Onboarding = ({navigation}) => {
     }
 
     if (!IsReady) {
-      return (
-        <AppLoading
-          startAsync={LoadFonts}
-          onFinish={() => SetIsReady(true)}
-          onError={() => {}}
-        />
-      );
+      return <Splash  />;
     }
 
     const submit = () => {
+        dispatch({
+            type: 'SET_LOGGEDIN',
+            payload: {loggedin: true}
+          });
             dispatch({
                 type: 'SET_USERNAME',
                 payload: {name: localusername}
@@ -63,11 +77,13 @@ const Onboarding = ({navigation}) => {
                 payload: {email: localemail}
             })
             saveUser(localusername,localemail)
-                navigation.navigate('Profile')
+                navigation.navigate('Home')
             }
     
     return (
         <>
+        
+      <TopBar navigation={navigation}/> 
         <View style={{flex:1,
             alignContent: "space-between",
             backgroundColor:'#aaaaaa',
@@ -98,8 +114,6 @@ const Onboarding = ({navigation}) => {
         keyboardType="email-address"
         textContentType="emailAddress"
       />
-      <Text>values: {username}</Text>
-<Text>values:{email}</Text>
 </View>
 
 <View style={{flex:0.5,
@@ -165,7 +179,6 @@ const styles = StyleSheet.create({
 /*
       <Text>First name</Text>
       
-
         onChangeText={props.onChangeText}
         
         value={props.text}

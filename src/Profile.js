@@ -2,10 +2,9 @@ import {Pressable,  StyleSheet, Text, View, TextInput, Image } from 'react-nativ
 import { useState,useEffect ,useContext} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
-import { Avatar, Accessory } from 'react-native-elements';
-
 //import 'react-initials-avatar/lib/ReactInitialsAvatar.css';
 import Splash from './Splash';
+import TopBar from './TopBar';
 
 import { AppContext } from './user';
 const Button = ({onPress, children, disabled}) => {
@@ -35,7 +34,6 @@ const LogOutButton = ({onPress, children, disabled}) => {
 
 
 const Profile = ({ navigation }) => {
-    
   const [isloading, SetIsloading] = useState(true);
 
   const [username, SetUsername] = useState("");
@@ -44,12 +42,13 @@ const Profile = ({ navigation }) => {
   const [phone, SetPhone] = useState("");
   const [avatar, SetAvatar] = useState(null);
 
-  
-  const { dispatch, avatarimg } = useContext(AppContext);
+  const { dispatch, avatarimg, loggedin } = useContext(AppContext);
+
 
   useEffect(() => {
     // Populating preferences from storage using AsyncStorage.multiGet
     (async () => {
+      if (loggedin) {
       try {
         const receivedusername = await AsyncStorage.getItem("username");
         const receivedlastname = await AsyncStorage.getItem("lastname");
@@ -81,8 +80,27 @@ const Profile = ({ navigation }) => {
       } finally {
         SetIsloading(false)
       }
-    } )();
-  }, []);
+    } else {
+      SetEmail("");
+      SetLastname("");
+      SetAvatar(null);
+      SetPhone("");
+      SetUsername("");
+      
+
+      dispatch({
+        type: 'SET_AVATAR',
+        payload: {avatarimg: null}
+    });
+      try {
+        
+      AsyncStorage.clear();
+      } catch(e) {
+       }
+       navigation.navigate('Onboarding')
+    }
+   } ) ();
+  },[loggedin]);
 
   const saveUser = async () => {
     try {
@@ -91,13 +109,26 @@ const Profile = ({ navigation }) => {
         await AsyncStorage.setItem("lastname", lastname)
         await AsyncStorage.setItem("phone", phone)
         await AsyncStorage.setItem("avatar", avatar)
-        dispatch({
-          type: 'SET_AVATAR',
-          payload: {avatarimg: avatar}
-      })
+        
     } catch(e) {
      // Handle error
-    }
+    } finally {
+    dispatch({
+      type: 'SET_USERNAME',
+      payload: {name: username}
+  });
+  dispatch({
+    type: 'SET_LASTNAME',
+    payload: {lastname: lastname}
+});
+dispatch({
+  type: 'SET_EMAIL',
+  payload: {lastname: email}
+});
+  dispatch({
+    type: 'SET_AVATAR',
+    payload: {avatarimg: avatar}
+});}
 }
 
 const pickImage = async () => {
@@ -111,34 +142,12 @@ const pickImage = async () => {
     cancelled: false
   });
 
-  console.log(result);
-
   if (!result.canceled) {
     SetAvatar(result.assets[0].uri);
   }  
 
 };
 
-
-
-const logout = async () => {
-  SetEmail("");
-  SetLastname("");
-  SetAvatar(null);
-  SetPhone("");
-  SetUsername("");
-  dispatch({
-    type: 'SET_AVATAR',
-    payload: {avatarimg: null}
-});
-  try {
-  
-  AsyncStorage.clear();
-  } catch(e) {
-   }
-   navigation.navigate('Onboarding')
-  };
-   
 
 const loadUser = async () => {
   try {
@@ -170,33 +179,30 @@ const loadUser = async () => {
 } catch (e) {
     alert(`An error occurred: ${e.message}`);
   } finally {
-    SetIsloading(false)
   }
 }
 
-//${username[0]}${lastname[0]}
-  if (isloading) {
-    // We haven't finished reading from AsyncStorage yet
-    return <Splash />;
-  }
-/*{avatar === null && <Avatar
-        name="Wim Kostmans"
-        size="150"
-        textSizeRatio="1.75"
-        src={""}
-      />}
-      
-      <Avatar rounded={true} title={`MD`} size="medium" 
-        
-  activeOpacity={0.7}
-        titleStyle={{backgroundColor: '#F4CE14', name: 'user'}}
-        
-        */
+       
+if (isloading) {
+  // We haven't finished reading from AsyncStorage yet
+/*
+  try {
+    loadUser()  
+  } catch {
+    alert("error")
+  } finally {
+    SetIsloading(false)
+  }*/
+  return <Splash  />;
+}
+
+
     return (
+      <>
+      <TopBar navigation={navigation}/> 
       <View style={{flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{flexDirection: 'row', flex: 0.2, alignItems: 'center', justifyContent: 'center' }}>
         <View style={{flexDirection: 'column', flex: 0.3, alignItems: 'center', justifyContent: 'center' }}>
-          <Text>avatar</Text>
           {avatar && <Image
           style={[styles.image, {width: 60, height: 60, borderRadius: 60}] }
           source={{ uri: avatar }}
@@ -205,7 +211,7 @@ const loadUser = async () => {
           accessibilityLabel={'Avatar'}
         />}
         {avatar === null && 
-        <Text style={{backgroundColor: '#F4CE14' , fontSize: 30,  borderRadius: 45}}> {`${username[0]}${lastname?lastname[0]:""}`} </Text>}
+        <Text style={{backgroundColor: '#F4CE14' , color:  "#000000", fontSize: 20, textAlign: 'center', textAlignVertical: 'center', width:40,height:40, borderRadius: 45}}> {username?`${username[0]}${lastname?lastname[0]:""}`:""} </Text>}
         
         </View>
         
@@ -254,13 +260,17 @@ const loadUser = async () => {
     textContentType="emailAddress"
   />
   
-  <LogOutButton children='Log out' onPress={ ()=> logout()} disabled={false}/>
+  <LogOutButton children='Log out' onPress={ ()=>       dispatch({
+        type: 'SET_LOGGEDIN',
+        payload: {loggedin: false}
+      }  ) } disabled={false}/>
         <View style={{flexDirection: 'row', flex: 0.2, alignItems: 'center', justifyContent: 'space-around' }}>
         <Button children='Discard changes' onPress={loadUser} disabled={false}/>   
       <Button children='Save changes' onPress={saveUser} 
         disabled={username==="" || email===""}/>
        </View>
       </View>
+      </>
     );
   }
  
