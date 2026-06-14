@@ -75,7 +75,7 @@ const Home = ({ navigation }) => {
   })();
   
 
-  newdata=[];
+  let newdata = [];
   (async () => {
     try {
         const response = await fetch(url);
