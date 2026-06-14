@@ -45,6 +45,7 @@ jobs:
         run: npx expo export:web
         env:
           CI: true
+          PUBLIC_URL: ./
           NODE_OPTIONS: --openssl-legacy-provider
 
       - name: Upload Pages artifact
