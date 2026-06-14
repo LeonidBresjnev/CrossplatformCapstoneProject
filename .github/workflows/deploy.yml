@@ -37,7 +37,9 @@ jobs:
         run: npm ci
 
       - name: Install Expo web dependencies
-        run: npx expo install react-native-web@~0.18.9 react-dom@18.1.0 @expo/webpack-config@^0.17.2 --non-interactive
+        run: npx expo install react-native-web@~0.18.9 react-dom@18.1.0 @expo/webpack-config@^0.17.2
+        env:
+          CI: true
 
       - name: Export Expo web app
         run: npx expo export:web
